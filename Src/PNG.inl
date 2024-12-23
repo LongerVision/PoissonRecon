@@ -26,6 +26,8 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
 DAMAGE.
 */
 
+#include <zlib.h>
+
 inline PNGReader::PNGReader( const char* fileName , unsigned int& width , unsigned int& height , unsigned int& channels )
 {
 	_currentRow = 0;
@@ -162,8 +164,12 @@ unsigned int PNGWriter::nextRow( const unsigned char* row )
 	png_write_row( _png_ptr , (png_bytep)row );
 	return _currentRow++;
 }
-unsigned int PNGWriter::nextRows( const unsigned char* rows , unsigned int rowNum )
-{
-	for( unsigned int r=0 ; r<rowNum ; r++ ) png_write_row( _png_ptr , (png_bytep)( rows + r * 3 * sizeof( unsigned char ) * _png_ptr->width ) );
-	return _currentRow += rowNum;
+unsigned int PNGWriter::nextRows(const unsigned char* rows, unsigned int rowNum) {
+    // Get the image width using the libpng function
+    png_uint_32 width = png_get_image_width(_png_ptr, _info_ptr);
+
+    for (unsigned int r = 0; r < rowNum; r++) {
+        png_write_row(_png_ptr, (png_bytep)(rows + r * 3 * sizeof(unsigned char) * width));
+    }
+    return _currentRow += rowNum;
 }
